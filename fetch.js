@@ -5,7 +5,7 @@ require("dotenv").config();
 const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
 const GITHUB_USERNAME = process.env.GITHUB_USERNAME;
 const USE_GITHUB_DATA = process.env.USE_GITHUB_DATA;
-const MEDIUM_USERNAME = process.env.MEDIUM_USERNAME;
+// const MEDIUM_USERNAME = process.env.MEDIUM_USERNAME;
 
 const ERR = {
   noUserName:
@@ -99,41 +99,41 @@ if (USE_GITHUB_DATA === "true") {
   req.end();
 }
 
-if (MEDIUM_USERNAME !== undefined) {
-  console.log(`Fetching Medium blogs data for ${MEDIUM_USERNAME}`);
-  const options = {
-    hostname: "api.rss2json.com",
-    path: `/v1/api.json?rss_url=https://medium.com/feed/@${MEDIUM_USERNAME}`,
-    port: 443,
-    method: "GET"
-  };
+// if (MEDIUM_USERNAME !== undefined) {
+//   console.log(`Fetching Medium blogs data for ${MEDIUM_USERNAME}`);
+//   const options = {
+//     hostname: "api.rss2json.com",
+//     path: `/v1/api.json?rss_url=${encodeURIComponent(`https://medium.com/feed/@${MEDIUM_USERNAME}`)}`,
+//     port: 443,
+//     method: "GET"
+//   };
 
-  const reqMedium = https.request(options, res => {
-    let mediumData = "";
+//   const reqMedium = https.request(options, res => {
+//     let mediumData = "";
 
-    console.log(`statusCode: ${res.statusCode}`);
-    if (res.statusCode !== 200) {
-      throw new Error(ERR.requestMediumFailed);
-    }
+//     console.log(`statusCode: ${res.statusCode}`);
+//     if (res.statusCode !== 200) {
+//       throw new Error(ERR.requestMediumFailed);
+//     }
 
-    res.on("data", d => {
-      mediumData += d;
-    });
+//     res.on("data", d => {
+//       mediumData += d;
+//     });
 
-    res.on("end", () => {
-      fs.writeFile("./public/blogs.json", mediumData, err => {
-        if (err) {
-          console.error("Error writing blogs.json:", err);
-        } else {
-          console.log("Saved file to public/blogs.json");
-        }
-      });
-    });
-  });
+//     res.on("end", () => {
+//       fs.writeFile("./public/blogs.json", mediumData, err => {
+//         if (err) {
+//           console.error("Error writing blogs.json:", err);
+//         } else {
+//           console.log("Saved file to public/blogs.json");
+//         }
+//       });
+//     });
+//   });
 
-  reqMedium.on("error", error => {
-    throw error;
-  });
+//   reqMedium.on("error", error => {
+//     throw error;
+//   });
 
-  reqMedium.end();
-}
+//   reqMedium.end();
+// }
