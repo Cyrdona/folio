@@ -1,6 +1,5 @@
-fs = require("fs");
+const fs = require("fs");
 const https = require("https");
-process = require("process");
 require("dotenv").config();
 
 const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
@@ -13,16 +12,17 @@ const ERR = {
     "Github Username was found to be undefined. Please set all relevant environment variables.",
   requestFailed:
     "The request to GitHub didn't succeed. Check if GitHub token in your .env file is correct.",
-  requestFailedMedium:
+  requestMediumFailed:
     "The request to Medium didn't succeed. Check if Medium username in your .env file is correct."
 };
+
 if (USE_GITHUB_DATA === "true") {
   if (GITHUB_USERNAME === undefined) {
     throw new Error(ERR.noUserName);
   }
 
   console.log(`Fetching profile data for ${GITHUB_USERNAME}`);
-  var data = JSON.stringify({
+  const data = JSON.stringify({
     query: `
 {
   user(login:"${GITHUB_USERNAME}") { 
@@ -33,30 +33,31 @@ if (USE_GITHUB_DATA === "true") {
     pinnedItems(first: 6, types: [REPOSITORY]) {
       totalCount
       edges {
-          node {
-            ... on Repository {
+        node {
+          ... on Repository {
+            name
+            description
+            forkCount
+            stargazers {
+              totalCount
+            }
+            url
+            id
+            diskUsage
+            primaryLanguage {
               name
-              description
-              forkCount
-              stargazers {
-                totalCount
-              }
-              url
-              id
-              diskUsage
-              primaryLanguage {
-                name
-                color
-              }
+              color
             }
           }
         }
       }
     }
+  }
 }
 `
   });
-  const default_options = {
+
+  const options = {
     hostname: "api.github.com",
     path: "/graphql",
     port: 443,
@@ -67,7 +68,7 @@ if (USE_GITHUB_DATA === "true") {
     }
   };
 
-  const req = https.request(default_options, res => {
+  const req = https.request(options, res => {
     let data = "";
 
     console.log(`statusCode: ${res.statusCode}`);
@@ -78,10 +79,14 @@ if (USE_GITHUB_DATA === "true") {
     res.on("data", d => {
       data += d;
     });
+
     res.on("end", () => {
-      fs.writeFile("./public/profile.json", data, function (err) {
-        if (err) return console.log(err);
-        console.log("saved file to public/profile.json");
+      fs.writeFile("./public/profile.json", data, err => {
+        if (err) {
+          console.error("Error writing profile.json:", err);
+        } else {
+          console.log("Saved file to public/profile.json");
+        }
       });
     });
   });
@@ -103,7 +108,7 @@ if (MEDIUM_USERNAME !== undefined) {
     method: "GET"
   };
 
-  const req = https.request(options, res => {
+  const reqMedium = https.request(options, res => {
     let mediumData = "";
 
     console.log(`statusCode: ${res.statusCode}`);
@@ -114,17 +119,21 @@ if (MEDIUM_USERNAME !== undefined) {
     res.on("data", d => {
       mediumData += d;
     });
+
     res.on("end", () => {
-      fs.writeFile("./public/blogs.json", mediumData, function (err) {
-        if (err) return console.log(err);
-        console.log("saved file to public/blogs.json");
+      fs.writeFile("./public/blogs.json", mediumData, err => {
+        if (err) {
+          console.error("Error writing blogs.json:", err);
+        } else {
+          console.log("Saved file to public/blogs.json");
+        }
       });
     });
   });
 
-  req.on("error", error => {
+  reqMedium.on("error", error => {
     throw error;
   });
 
-  req.end();
+  reqMedium.end();
 }
